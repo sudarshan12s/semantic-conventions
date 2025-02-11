@@ -31,7 +31,7 @@ The following table outlines the span attributes applicable to OracleDB.
 
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
-| [`db.namespace`](/docs/attributes-registry/db.md) | string | The servicename associated with the connection. [1] | `inventory.example.org`; `salesdb.example.com` | `Conditionally Required` If available without an additional network call. | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
+| [`db.namespace`](/docs/attributes-registry/db.md) | string | The service name associated with the connection. [1] | `inventory.example.org`; `salesdb.example.com` | `Conditionally Required` If available without an additional network call. | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 | [`db.response.status_code`](/docs/attributes-registry/db.md) | string | [OracleDB error number](https://docs.oracle.com/en/error-help/db/) recorded as a string. | `ORA-02813`; `ORA-02613` | `Conditionally Required` If response has ended with warning or an error. | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 | [`error.type`](/docs/attributes-registry/error.md) | string | Describes a class of error the operation ended with. [2] | `timeout`; `java.net.UnknownHostException`; `server_certificate_invalid`; `500` | `Conditionally Required` If and only if the operation failed. | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 | [`server.port`](/docs/attributes-registry/server.md) | int | Server port number. [3] | `1521`; `1522`; | `Conditionally Required` [4] | ![Stable](https://img.shields.io/badge/-stable-lightgreen) |
