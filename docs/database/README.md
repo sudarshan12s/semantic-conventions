@@ -50,6 +50,7 @@ Technology specific semantic conventions are defined for the following databases
 * [HBase](hbase.md): Semantic Conventions for *HBase*.
 * [MongoDB](mongodb.md): Semantic Conventions for *MongoDB*.
 * [Microsoft SQL Server](mssql.md): Semantic Conventions for *Microsoft SQL Server*.
+* [OracleDB](oracledb.md): Semantic Conventions for *OracleDB*.
 * [Redis](redis.md): Semantic Conventions for *Redis*.
 * [SQL](sql.md): Semantic Conventions for *SQL* databases.
 
