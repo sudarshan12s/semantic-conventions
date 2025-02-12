@@ -816,7 +816,7 @@ groups:
     extends: span.db.sql.client
     span_kind: client
     brief: >
-      Attributes for OracleDB
+      Attributes for Oracle Database
     attributes:
       - ref: db.namespace
         sampling_relevant: true
@@ -828,8 +828,8 @@ groups:
         examples: ["inventory.example.org", "salesdb.example.com"]
       - ref: db.response.status_code
         brief: >
-          [OracleDB error number](https://docs.oracle.com/en/error-help/db/) recorded as a string.
+          [Oracle Database error number](https://docs.oracle.com/en/error-help/db/) recorded as a string.
         note: >
-          OracleDB error codes are vendor specific error codes and don't follow [SQLSTATE](https://wikipedia.org/wiki/SQLSTATE)
-          conventions. All OracleDB error codes SHOULD be considered errors.
+          Oracle Database error codes are vendor specific error codes and don't follow [SQLSTATE](https://wikipedia.org/wiki/SQLSTATE)
+          conventions. All Oracle Database error codes SHOULD be considered errors.
         examples: ["ORA-02813", "ORA-02613"]
