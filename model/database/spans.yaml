@@ -825,7 +825,7 @@ groups:
           Instrumentation SHOULD document if `db.namespace` reflects the service name provided when the connection was established.
 
           It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-        examples: ["inventory.example.org", "salesdb.example.com"]
+        examples: ["db_high.adb.oraclecloud.com", "db_low.adb.oraclecloud.com"]
       - ref: db.response.status_code
         brief: >
           [Oracle Database error number](https://docs.oracle.com/en/error-help/db/) recorded as a string.
