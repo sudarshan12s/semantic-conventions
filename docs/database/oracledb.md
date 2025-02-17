@@ -38,12 +38,12 @@ The following table outlines the span attributes applicable to Oracle Database.
 | [`server.port`](/docs/attributes-registry/server.md) | int | Server port number. [3] | `1521`; `1522`; | `Conditionally Required` [4] | ![Stable](https://img.shields.io/badge/-stable-lightgreen) |
 | [`db.operation.batch.size`](/docs/attributes-registry/db.md) | int | The number of queries included in a batch operation. [5] | `2`; `3`; `4` | `Recommended` | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 | [`db.query.summary`](/docs/attributes-registry/db.md) | string | Low cardinality representation of a database query text. [6] | `SELECT wuser_table`; `INSERT shipping_details SELECT orders`; `get user by id` | `Recommended` [7] | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
-| [`db.query.text`](/docs/attributes-registry/db.md) | string | The database query being executed. [8] | `SELECT * FROM wuser_table where username = :mykey`; `DEFINE mykey = 'some_val'` | `Recommended` [9] | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
+| [`db.query.text`](/docs/attributes-registry/db.md) | string | The database query being executed. [8] | `VARIABLE mykey VARCHAR2(50);`; `EXEC :mykey := 'some_val';`; `SELECT * FROM wuser_table where username = :mykey`; | `Recommended` [9] | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 | [`db.response.returned_rows`](/docs/attributes-registry/db.md) | int | Number of rows returned by the operation. | `10`; `30`; `1000` | `Recommended` | ![Experimental](https://img.shields.io/badge/-experimental-blue) |
-| [`server.address`](/docs/attributes-registry/server.md) | string | Name of the database host. [10] | `example.com`; `10.1.2.80`; `/tmp/my.sock` | `Recommended` | ![Stable](https://img.shields.io/badge/-stable-lightgreen) |
+| [`server.address`](/docs/attributes-registry/server.md) | string | Name of the database host. [10] | `example.com`; `10.1.2.80`; | `Recommended` | ![Stable](https://img.shields.io/badge/-stable-lightgreen) |
 | [`db.operation.parameter.<key>`](/docs/attributes-registry/db.md) | string | A database operation parameter, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value. [11] | `someval`; `55` | `Opt-In` | ![Release Candidate](https://img.shields.io/badge/-rc-mediumorchid) |
 
-**[1] `db.namespace`:** `db.namespace` SHOULD be set to the service name used to connect to database.
+**[1] `db.namespace`:** `db.namespace` SHOULD be set to the service name used to connect to the database.
 
 Instrumentation SHOULD document if `db.namespace` reflects the service name provided when the connection was established.
 
@@ -60,7 +60,7 @@ Instrumentations SHOULD document how `error.type` is populated.
 **[5] `db.operation.batch.size`:** Operations are only considered batches when they contain two or more operations, and so `db.operation.batch.size` SHOULD never be `1`.
 
 **[6] `db.query.summary`:** `db.query.summary` provides static summary of the query text. It describes a class of database queries and is useful as a grouping key, especially when analyzing telemetry for database calls involving complex queries.
-Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following [Generating query summary](../database/database-spans.md#generating-a-summary-of-the-query-text) section.
+A Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following [Generating query summary](../database/database-spans.md#generating-a-summary-of-the-query-text) section.
 
 **[7] `db.query.summary`:** if readily available or if instrumentation supports query summarization.
 
@@ -100,7 +100,7 @@ and SHOULD be provided **at span creation time** (if provided at all):
 
 ## Metrics
 
-Oracle Database Server client instrumentations SHOULD collect metrics according to the general
+Oracle Database driver instrumentation SHOULD collect metrics according to the general
 [Semantic Conventions for Database Client Metrics](database-metrics.md).
 
 `db.system.name` MUST be set to `"oracle.db"`.
