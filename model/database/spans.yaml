@@ -983,16 +983,55 @@ groups:
       - ref: db.namespace
         sampling_relevant: true
         brief: >
-          The database associated with the connection, qualified by the instance name,
-          database name and service name.
+          The unique database name associated with the connection.
         note: |
-          `db.namespace` SHOULD be set to the combination of instance name, database name and
-          service name following the `{service_name}|{database_name}|{instance_name}` pattern.
-          Any missing components (and their associated separators) SHOULD be omitted.
+          `DB_UNIQUE_NAME` SHOULD be set to value of the parameter `DB_UNIQUE_NAME` in `v$parameter`.
 
-          For CDB architecture, database name would be pdb name. For Non-CDB, it would be
-          `DB_NAME` parameter.
-        examples: ["ORCL1\\|PDB1\\|db_high.adb.oraclecloud.com", "ORCL1\\|DB1\\|db_low.adb.oraclecloud.com", "ORCL1\\|DB1\\|order-processing-service"]
+        examples: ["ORCL1", "ORCL2", "ORCL3"]
+
+      - ref: oracle.db.service
+        sampling_relevant: true
+        brief: >
+          The service name associated with the connection.
+        note: |
+          A connection's currently associated service name may change during its lifetime, e.g. from executing `ALTER SESSION`.
+          If instrumentation is unable to capture the connection's currently associated service name on each query
+          without triggering an additional query to be executed (e.g. `SELECT SYS_CONTEXT`),
+          then it is RECOMMENDED to fallback and use the service name provided when the connection was established.
+
+        examples: ["order-processing-service", "db_low.adb.oraclecloud.com", "db_high.adb.oraclecloud.com"]
+
+      - ref: oracle.db.instance
+        sampling_relevant: true
+        brief: >
+          The instance name associated with the connection in an Oracle Real Application Clusters environment.
+        note: |
+          There can be multiple instances associated with a single database service. It indicates the
+          unique instance name to which it is connected to.
+
+        examples: ["ORCL1", "ORCL2", "ORCL3"]
+
+      - ref: oracle.db.pdb
+        sampling_relevant: true
+        brief: >
+          The pdb name associated with the connection.
+        note: |
+          `oracle.db.pdb` SHOULD be set to the associated container with the connection.
+          If instrumentation is unable to capture the connection's currently associated container name on each query
+          without triggering an additional query to be executed (e.g. `SELECT SYS_CONTEXT`),
+          then it is RECOMMENDED to fallback and use the container name provided when the connection was established.
+
+        examples: ["PDB1", "FREEPDB"]
+
+      - ref: oracle.db.db_name
+        sampling_relevant: true
+        brief: >
+          The db name associated with the connection.
+        note: |
+          `oracle.db.db_name` SHOULD be set to value of the parameter `DB_NAME` in `v$parameter`.
+
+        examples: ["ORCL1", "FREE"]
+
       - ref: db.response.status_code
         brief: >
           [Oracle Database error number](https://docs.oracle.com/en/error-help/db/) recorded as a string.

@@ -38,7 +38,7 @@ Spans representing calls to a Oracle SQL Database adhere to the general [Semanti
 
 | Key | Stability | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Value Type | Description | Example Values |
 |---|---|---|---|---|---|
-| [`db.namespace`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Conditionally Required` If available without an additional network call. | string | The database associated with the connection, qualified by the instance name, database name and service name. [1] | `ORCL1\|PDB1\|db_high.adb.oraclecloud.com`; `ORCL1\|DB1\|db_low.adb.oraclecloud.com`; `ORCL1\|DB1\|order-processing-service` |
+| [`db.namespace`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Conditionally Required` If available without an additional network call. | string | The unique database name associated with the connection. [1] | `ORCL1`; `ORCL2`; `ORCL3` |
 | [`db.response.status_code`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Conditionally Required` If response has ended with warning or an error. | string | [Oracle Database error number](https://docs.oracle.com/en/error-help/db/) recorded as a string. [2] | `ORA-02813`; `ORA-02613` |
 | [`error.type`](/docs/registry/attributes/error.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Conditionally Required` If and only if the operation failed. | string | Describes a class of error the operation ended with. [3] | `timeout`; `java.net.UnknownHostException`; `server_certificate_invalid`; `500` |
 | [`server.port`](/docs/registry/attributes/server.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Conditionally Required` [4] | int | Server port number. [5] | `80`; `8080`; `443` |
@@ -48,16 +48,15 @@ Spans representing calls to a Oracle SQL Database adhere to the general [Semanti
 | [`db.query.summary`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Recommended` [11] | string | Low cardinality summary of a database query. [12] | `SELECT wuser_table`; `INSERT shipping_details SELECT orders`; `get user by id` |
 | [`db.query.text`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Recommended` [13] | string | The database query being executed. [14] | `SELECT * FROM wuser_table where username = :mykey` |
 | [`db.stored_procedure.name`](/docs/registry/attributes/db.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Recommended` [15] | string | The name of a stored procedure within the database. [16] | `GetCustomer` |
-| [`server.address`](/docs/registry/attributes/server.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Recommended` | string | Name of the database host. [17] | `example.com`; `10.1.2.80`; `/tmp/my.sock` |
-| [`db.query.parameter.<key>`](/docs/registry/attributes/db.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Opt-In` | string | A database query parameter, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value. [18] | `someval`; `55` |
+| [`oracle.db.db_name`](/docs/registry/attributes/oracledb.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Recommended` | string | The db name associated with the connection. [17] | `ORCL1`; `FREE` |
+| [`oracle.db.instance`](/docs/registry/attributes/oracledb.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Recommended` | string | The instance name associated with the connection in an Oracle Real Application Clusters environment. [18] | `ORCL1`; `ORCL2`; `ORCL3` |
+| [`oracle.db.pdb`](/docs/registry/attributes/oracledb.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Recommended` | string | The pdb name associated with the connection. [19] | `PDB1`; `FREEPDB` |
+| [`oracle.db.service`](/docs/registry/attributes/oracledb.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Recommended` | string | The service name associated with the connection. [20] | `order-processing-service`; `db_low.adb.oraclecloud.com`; `db_high.adb.oraclecloud.com` |
+| [`server.address`](/docs/registry/attributes/server.md) | ![Stable](https://img.shields.io/badge/-stable-lightgreen) | `Recommended` | string | Name of the database host. [21] | `example.com`; `10.1.2.80`; `/tmp/my.sock` |
+| [`db.query.parameter.<key>`](/docs/registry/attributes/db.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Opt-In` | string | A database query parameter, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value. [22] | `someval`; `55` |
 | [`db.response.returned_rows`](/docs/registry/attributes/db.md) | ![Development](https://img.shields.io/badge/-development-blue) | `Opt-In` | int | Number of rows returned by the operation. | `10`; `30`; `1000` |
 
-**[1] `db.namespace`:** `db.namespace` SHOULD be set to the combination of instance name, database name and
-service name following the `{service_name}|{database_name}|{instance_name}` pattern.
-Any missing components (and their associated separators) SHOULD be omitted.
-
-For CDB architecture, database name would be pdb name. For Non-CDB, it would be
-`DB_NAME` parameter.
+**[1] `db.namespace`:** `DB_UNIQUE_NAME` SHOULD be set to value of the parameter `DB_UNIQUE_NAME` in `v$parameter`.
 
 **[2] `db.response.status_code`:** Oracle Database error codes are vendor specific error codes and don't follow [SQLSTATE](https://wikipedia.org/wiki/SQLSTATE) conventions. All Oracle Database error codes SHOULD be considered errors.
 
@@ -103,9 +102,24 @@ without attempting to do any case normalization.
 For batch operations, if the individual operations are known to have the same
 stored procedure name then that stored procedure name SHOULD be used.
 
-**[17] `server.address`:** When observed from the client side, and when communicating through an intermediary, `server.address` SHOULD represent the server address behind any intermediaries, for example proxies, if it's available.
+**[17] `oracle.db.db_name`:** `oracle.db.db_name` SHOULD be set to value of the parameter `DB_NAME` in `v$parameter`.
 
-**[18] `db.query.parameter.<key>`:** If a query parameter has no name and instead is referenced only by index,
+**[18] `oracle.db.instance`:** There can be multiple instances associated with a single database service. It indicates the
+unique instance name to which it is connected to.
+
+**[19] `oracle.db.pdb`:** `oracle.db.pdb` SHOULD be set to the associated container with the connection.
+If instrumentation is unable to capture the connection's currently associated container name on each query
+without triggering an additional query to be executed (e.g. `SELECT SYS_CONTEXT`),
+then it is RECOMMENDED to fallback and use the container name provided when the connection was established.
+
+**[20] `oracle.db.service`:** A connection's currently associated service name may change during its lifetime, e.g. from executing `ALTER SESSION`.
+If instrumentation is unable to capture the connection's currently associated service name on each query
+without triggering an additional query to be executed (e.g. `SELECT SYS_CONTEXT`),
+then it is RECOMMENDED to fallback and use the service name provided when the connection was established.
+
+**[21] `server.address`:** When observed from the client side, and when communicating through an intermediary, `server.address` SHOULD represent the server address behind any intermediaries, for example proxies, if it's available.
+
+**[22] `db.query.parameter.<key>`:** If a query parameter has no name and instead is referenced only by index,
 then `<key>` SHOULD be the 0-based index.
 
 `db.query.parameter.<key>` SHOULD match
@@ -130,6 +144,10 @@ and SHOULD be provided **at span creation time** (if provided at all):
 * [`db.namespace`](/docs/registry/attributes/db.md)
 * [`db.query.summary`](/docs/registry/attributes/db.md)
 * [`db.query.text`](/docs/registry/attributes/db.md)
+* [`oracle.db.db_name`](/docs/registry/attributes/oracledb.md)
+* [`oracle.db.instance`](/docs/registry/attributes/oracledb.md)
+* [`oracle.db.pdb`](/docs/registry/attributes/oracledb.md)
+* [`oracle.db.service`](/docs/registry/attributes/oracledb.md)
 * [`server.address`](/docs/registry/attributes/server.md)
 * [`server.port`](/docs/registry/attributes/server.md)
 
