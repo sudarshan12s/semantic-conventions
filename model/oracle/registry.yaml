@@ -1,0 +1,30 @@
+groups:
+  - id: registry.oracledb
+    type: attribute_group
+    display_name: Oracle Database Attributes
+    brief: >
+      This section defines attributes for Oracle Database.
+    attributes:
+      - id: oracle.db.instance
+        type: string
+        stability: development
+        brief: The name of the Oracle Database instance.
+        examples: "ORCL1"
+      - id: oracle.db.pdb
+        type: string
+        stability: development
+        brief: >
+          The name of the pluggable database (PDB) the connection is using.
+        examples: "PDB1"
+      - id: oracle.db.service
+        type: string
+        stability: development
+        brief: >
+          The service name associated with the connection.
+        examples: "order-processing-service"
+      - id: oracle.db.db_name
+        type: string
+        stability: development
+        brief: >
+          The db name associated with the connection.
+        examples: "ORCL1"
