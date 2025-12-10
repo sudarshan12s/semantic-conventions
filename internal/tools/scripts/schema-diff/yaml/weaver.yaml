@@ -3,8 +3,8 @@ params:
 templates:
   - pattern: schema-diff.j2
     filter: >
-      .
-      | {
+      . | {
+
           renames: .changes | with_entries(.value |= (map(select(.type == "renamed")) | sort_by(.old_name))),
           next_version: $next_version,
           latest_released_version: .baseline.semconv_version,
