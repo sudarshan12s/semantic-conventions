@@ -10,8 +10,9 @@ This section defines attributes for Oracle Database.
 **Attributes:**
 
 | Key | Stability | Value Type | Description | Example Values |
-|---|---|---|---|---|
-| <a id="oracle-db-db-name" href="#oracle-db-db-name">`oracle.db.db_name`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The db name associated with the connection. | `ORCL1` |
-| <a id="oracle-db-instance" href="#oracle-db-instance">`oracle.db.instance`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The name of the Oracle Database instance. | `ORCL1` |
-| <a id="oracle-db-pdb" href="#oracle-db-pdb">`oracle.db.pdb`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The name of the pluggable database (PDB) the connection is using. | `PDB1` |
-| <a id="oracle-db-service" href="#oracle-db-service">`oracle.db.service`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The service name associated with the connection. | `order-processing-service` |
+| --- | --- | --- | --- | --- |
+| <a id="oracle-db-domain" href="#oracle-db-domain">`oracle.db.domain`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The database domain associated with the connection. | `ORCL1` |
+| <a id="oracle-db-instance" href="#oracle-db-instance">`oracle.db.instance`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The instance name associated with the connection in an Oracle Real Application Clusters environment. | `ORCL1` |
+| <a id="oracle-db-name" href="#oracle-db-name">`oracle.db.name`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The database name associated with the connection. | `ORCL1` |
+| <a id="oracle-db-pdb" href="#oracle-db-pdb">`oracle.db.pdb`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The pluggable database (PDB) name associated with the connection. | `PDB1` |
+| <a id="oracle-db-service" href="#oracle-db-service">`oracle.db.service`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The service name currently associated with the database connection. | `order-processing-service` |

@@ -5,26 +5,33 @@ groups:
     brief: >
       This section defines attributes for Oracle Database.
     attributes:
+      - id: oracle.db.name
+        type: string
+        stability: development
+        brief: >
+          The database name associated with the connection.
+        examples: "ORCL1"
+      - id: oracle.db.domain
+        type: string
+        stability: development
+        brief: >
+          The database domain associated with the connection.
+        examples: "ORCL1"
       - id: oracle.db.instance
         type: string
         stability: development
-        brief: The name of the Oracle Database instance.
+        brief: The instance name associated with the connection in an Oracle Real Application Clusters environment.
         examples: "ORCL1"
       - id: oracle.db.pdb
         type: string
         stability: development
         brief: >
-          The name of the pluggable database (PDB) the connection is using.
+          The pluggable database (PDB) name associated with the connection.
         examples: "PDB1"
       - id: oracle.db.service
         type: string
         stability: development
         brief: >
-          The service name associated with the connection.
+          The service name currently associated with the database connection.
         examples: "order-processing-service"
-      - id: oracle.db.db_name
-        type: string
-        stability: development
-        brief: >
-          The db name associated with the connection.
-        examples: "ORCL1"
+
