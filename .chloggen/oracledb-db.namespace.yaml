@@ -1,0 +1,8 @@
+change_type: breaking
+component: db/oracledb
+note: |
+  Modify `db.namespace` attribute definition to include Database unique identifier.
+
+
+issues: [2147]
+change_logs: [user]
