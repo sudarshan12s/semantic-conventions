@@ -18,7 +18,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: K8s"
     owner:
       - name: "semconv-k8s-approvers"
@@ -32,7 +31,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: GenAI"
     owner:
       - name: "semconv-genai-approvers"
@@ -45,7 +43,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: CI/CD"
     owner:
       - name: "semconv-cicd-approvers"
@@ -61,7 +58,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Security"
     owner:
       - name: "semconv-security-approvers"
@@ -80,7 +76,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Browser Instrumentation"
     owner:
       - name: "semconv-browser-approvers"
@@ -92,7 +87,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Client Instrumentation"
     owner:
       - name: "semconv-client-approvers"
@@ -105,11 +99,9 @@ areas:
       - area:device
       - area:mobile
       - area:session
-
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Resources and Entities"
     owner:
       - name: "specs-semconv-maintainers" # TODO: Missing team user for entities?
@@ -121,7 +113,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Messaging"
     owner:
       - name: "semconv-messaging-approvers"
@@ -134,8 +125,7 @@ areas:
       - inactive
       - needs_staffing
     notes: >
-      The SIG is inactive. If you have interest in working towards messaging stabilization,
-      consider proposing a [project update](https://github.com/open-telemetry/community/blob/main/projects/currently-inactive/messaging-semconv.md)
+      The SIG is inactive. If you have interest in working towards messaging stabilization, consider proposing a [project update](https://github.com/open-telemetry/community/blob/main/projects/currently-inactive/messaging-semconv.md)
 
   - name: "Semantic Conventions: HTTP"
     owner:
@@ -162,7 +152,6 @@ areas:
       - area:db
     status:
       - inactive
-
   - name: "Semantic Conventions: FaaS"
     owner:
       - name: "specs-semconv-maintainers" # TODO: Missing team user for faas?
@@ -173,7 +162,6 @@ areas:
       - area:faas
     status:
       - inactive
-
   - name: "Semantic Conventions: JVM"
     owner:
       - name: "semconv-jvm-approvers"
@@ -184,7 +172,6 @@ areas:
       - area:jvm
     status:
       - inactive
-
   - name: "Semantic Conventions: Logs"
     owner:
       - name: "semconv-log-approvers"
@@ -198,7 +185,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Mainframe"
     owner:
       - name: "sig-mainframe-approvers"
@@ -211,7 +197,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Profiling"
     owner:
       - name: "profiling-approvers"
@@ -224,7 +209,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: .NET"
     owner:
       - name: "semconv-dotnet-approver"
@@ -240,7 +224,6 @@ areas:
       - accepting_contributions
       - active
     notes: "SIG is driven by members of the .NET runtime team. Contributions are welcomed but must be aligned with the .NET runtime features/roadmap"
-
   - name: "Semantic Conventions: RPC"
     project: "https://github.com/open-telemetry/community/blob/main/projects/rpc-semconv.md"
     board: "https://github.com/orgs/open-telemetry/projects/161"
@@ -253,7 +236,6 @@ areas:
     status:
       - accepting_contributions
       - active
-
   - name: "Semantic Conventions: Service and Deployment"
     owner:
       - name: "semconv-service-and-deployment-approvers"
