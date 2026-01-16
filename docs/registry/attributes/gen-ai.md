@@ -29,6 +29,7 @@ This document defines the attributes used to describe telemetry in the context o
 | <a id="gen-ai-operation-name" href="#gen-ai-operation-name">`gen_ai.operation.name`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The name of the operation being performed. [4] | `chat`; `generate_content`; `text_completion` |
 | <a id="gen-ai-output-messages" href="#gen-ai-output-messages">`gen_ai.output.messages`</a> | ![Development](https://img.shields.io/badge/-development-blue) | any | Messages returned by the model where each message represents a specific model response (choice, candidate). [5] | [<br>&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;"role": "assistant",<br>&nbsp;&nbsp;&nbsp;&nbsp;"parts": [<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "text",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"content": "The weather in Paris is currently rainy with a temperature of 57°F."<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;],<br>&nbsp;&nbsp;&nbsp;&nbsp;"finish_reason": "stop"<br>&nbsp;&nbsp;}<br>] |
 | <a id="gen-ai-output-type" href="#gen-ai-output-type">`gen_ai.output.type`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | Represents the content type requested by the client. [6] | `text`; `json`; `image` |
+| <a id="gen-ai-prompt-name" href="#gen-ai-prompt-name">`gen_ai.prompt.name`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The name of the prompt that uniquely identifies it. | `analyze-code` |
 | <a id="gen-ai-provider-name" href="#gen-ai-provider-name">`gen_ai.provider.name`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string | The Generative AI provider as identified by the client or server instrumentation. [7] | `openai`; `gcp.gen_ai`; `gcp.vertex_ai` |
 | <a id="gen-ai-request-choice-count" href="#gen-ai-request-choice-count">`gen_ai.request.choice.count`</a> | ![Development](https://img.shields.io/badge/-development-blue) | int | The target number of candidate completions to return. | `3` |
 | <a id="gen-ai-request-encoding-formats" href="#gen-ai-request-encoding-formats">`gen_ai.request.encoding_formats`</a> | ![Development](https://img.shields.io/badge/-development-blue) | string[] | The encoding formats requested in an embeddings operation, if specified. [8] | `["base64"]`; `["float", "binary"]` |
@@ -143,14 +144,18 @@ system instructions.
 See [Recording content on attributes](/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes)
 section for more details.
 
-**[10] `gen_ai.tool.call.arguments`:** > [!WARNING]
+**[10] `gen_ai.tool.call.arguments`:**
+
+> [!WARNING]
 > This attribute may contain sensitive information.
 
 It's expected to be an object - in case a serialized string is available
 to the instrumentation, the instrumentation SHOULD do the best effort to
 deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
 
-**[11] `gen_ai.tool.call.result`:** > [!WARNING]
+**[11] `gen_ai.tool.call.result`:**
+
+> [!WARNING]
 > This attribute may contain sensitive information.
 
 It's expected to be an object - in case a serialized string is available
