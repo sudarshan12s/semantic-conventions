@@ -10,6 +10,7 @@ linkTitle: Oracle Database
 
 - [Spans](#spans)
 - [Context propagation](#context-propagation)
+  - [Application context piggyback](#application-context-piggyback)
   - [V$SESSION.ACTION](#vsessionaction)
 - [Metrics](#metrics)
 
@@ -185,33 +186,43 @@ and SHOULD be provided **at span creation time** (if provided at all):
 
 **Status**: [Development][DocumentStatus]
 
-### V$SESSION.ACTION
+### Application context piggyback
 
-Instrumentations MAY propagate context with a fixed-length, 64 byte value using [V$SESSION.ACTION](https://docs.oracle.com/en/database/oracle/oracle-database/23/refrn/V-SESSION.html) by injecting part of span context (trace-id, span-id, trace-flags, protocol version) before executing a query. For example, when using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected. Context injection SHOULD NOT be enabled by default, but instrumentation MAY allow users to opt into it.
+Instrumentations MAY propagate context by using an Oracle driver mechanism that sends application context to the server on the same physical connection as the SQL statement. When using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected. Context injection SHOULD NOT be enabled by default, but instrumentation MAY allow users to opt into it.
 
-Variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected since `V$SESSION.ACTION` value length is limited to 64 bytes.
+Variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected.
 
-Instrumentations that propagate context MUST update `V$SESSION.ACTION` on the same physical connection as the SQL statement.
+Instrumentations that propagate context MUST ensure the propagated value is written on the same physical connection as the SQL statement. Implementations SHOULD prefer a driver-level piggyback or equivalent mechanism that avoids an extra database round trip.
+
+For Oracle drivers that support application context piggyback, instrumentations SHOULD send the `traceparent` value in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`.
+
+Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
 Example:
 
-Note that Oracle database drivers in different languages may have different implementation to update `V$SESSION.ACTION`.
+Note that Oracle database drivers in different languages may have different implementation details for piggybacking application context to the server.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`:
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, a driver can set application context on the connection:
 
-Run the following command on the same physical connection as the SQL statement:
-
-```sql
-BEGIN
-    DBMS_APPLICATION_INFO.SET_ACTION('00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01');
-END;
+```js
+connection.appContext('CLIENTCONTEXT', [
+  { ora$opentelem$tracectx: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01' },
+]);
 ```
 
-Then run the query:
+The driver then sends this context to the server using its piggyback mechanism on the same physical connection as the subsequent SQL statement:
 
 ```sql
 SELECT * FROM songs;
 ```
+
+### V$SESSION.ACTION
+
+Instrumentations MAY also propagate context using [V$SESSION.ACTION](https://docs.oracle.com/en/database/oracle/oracle-database/23/refrn/V-SESSION.html) by injecting a fixed-length value before executing a query. For example, when using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected.
+
+Because `V$SESSION.ACTION` is limited to 64 bytes, variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected. Instrumentations that use this mechanism MUST update `V$SESSION.ACTION` on the same physical connection as the SQL statement.
+
+Applications may already use `ACTION` for their own session metadata, so instrumentations SHOULD prefer application context piggyback when the driver supports it.
 
 ## Metrics
 
