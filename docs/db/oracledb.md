@@ -194,9 +194,9 @@ When using W3C Trace Context, instrumentations SHOULD inject [`traceparent`](htt
 
 If supported by the driver and server-side conventions, instrumentations MAY also propagate [`baggage`](https://www.w3.org/TR/baggage/) separately from trace context.
 
-Instrumentations that propagate context MUST ensure the propagated value is written on the same physical connection as the SQL statement. Implementations SHOULD prefer a driver-level piggyback or equivalent mechanism that avoids an extra database round trip.
+Instrumentations that propagate context MUST use the Oracle driver API on the same connection object that is used to execute the SQL statement. Instrumentations SHOULD use driver APIs that associate the context with the statement execution without requiring an additional database call.
 
-When application context piggyback is supported, instrumentations SHOULD send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
+When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
 
 Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to driver-specific limits. For example, `node-oracledb` currently limits each application context value to 4000 bytes.
 
