@@ -188,13 +188,15 @@ and SHOULD be provided **at span creation time** (if provided at all):
 
 ### Application context piggyback
 
-Instrumentations MAY propagate context by using an Oracle driver mechanism that sends application context to the server on the same physical connection as the SQL statement. When using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected. Context injection SHOULD NOT be enabled by default, but instrumentation MAY allow users to opt into it.
+Instrumentations MAY propagate context by using an Oracle driver mechanism that sends application context to the server on the same physical connection as the SQL statement. Context injection SHOULD NOT be enabled by default, but instrumentation MAY allow users to opt into it.
 
-Variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected.
+When using W3C Trace Context, instrumentations SHOULD inject [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header). If [`tracestate`](https://www.w3.org/TR/trace-context/#tracestate-header) is present, instrumentations MAY inject it together with `traceparent` as part of the propagated trace context value.
+
+If supported by the driver and server-side conventions, instrumentations MAY also propagate [`baggage`](https://www.w3.org/TR/baggage/) separately from trace context.
 
 Instrumentations that propagate context MUST ensure the propagated value is written on the same physical connection as the SQL statement. Implementations SHOULD prefer a driver-level piggyback or equivalent mechanism that avoids an extra database round trip.
 
-For Oracle drivers that support application context piggyback, instrumentations SHOULD send the `traceparent` value in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`.
+For Oracle drivers that support application context piggyback, instrumentations SHOULD send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
 
 Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
@@ -202,11 +204,15 @@ Example:
 
 Note that Oracle database drivers in different languages may have different implementation details for piggybacking application context to the server.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, a driver can set application context on the connection:
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01` and `tracestate` is `congo=t61rcWkgMzE`, a driver can set application context on the connection:
 
 ```js
 connection.appContext('CLIENTCONTEXT', [
-  { ora$opentelem$tracectx: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01' },
+  {
+    ora$opentelem$tracectx:
+      'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n' +
+      'tracestate: congo=t61rcWkgMzE\r\n',
+  },
 ]);
 ```
 
