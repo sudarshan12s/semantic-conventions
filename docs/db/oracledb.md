@@ -198,15 +198,15 @@ Instrumentations that propagate context MUST use the Oracle driver API on the sa
 
 When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
 
-Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to driver-specific limits. For example, `node-oracledb` currently limits each application context value to 4000 bytes.
+Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs.
 
 Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
 Example:
 
-Note that Oracle database drivers in different languages may have different implementation details for piggybacking application context to the server.
+Note that Oracle database drivers in different languages may expose different APIs for setting application context on a connection.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, a driver can set application context on the connection:
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection:
 
 ```js
 connection.appContext('CLIENTCONTEXT', [
@@ -221,7 +221,7 @@ connection.appContext('CLIENTCONTEXT', [
 ]);
 ```
 
-The driver then sends this context to the server using its piggyback mechanism on the same physical connection as the subsequent SQL statement:
+The driver then sends this context with the subsequent SQL statement on that connection:
 
 ```sql
 SELECT * FROM songs;
