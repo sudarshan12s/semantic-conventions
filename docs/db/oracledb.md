@@ -196,7 +196,9 @@ If supported by the driver and server-side conventions, instrumentations MAY als
 
 Instrumentations that propagate context MUST ensure the propagated value is written on the same physical connection as the SQL statement. Implementations SHOULD prefer a driver-level piggyback or equivalent mechanism that avoids an extra database round trip.
 
-For Oracle drivers that support application context piggyback, instrumentations SHOULD send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
+When application context piggyback is supported, instrumentations SHOULD send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
+
+Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to driver-specific limits. For example, `node-oracledb` currently limits each application context value to 4000 bytes.
 
 Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
@@ -204,7 +206,7 @@ Example:
 
 Note that Oracle database drivers in different languages may have different implementation details for piggybacking application context to the server.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01` and `tracestate` is `congo=t61rcWkgMzE`, a driver can set application context on the connection:
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, a driver can set application context on the connection:
 
 ```js
 connection.appContext('CLIENTCONTEXT', [
@@ -212,6 +214,9 @@ connection.appContext('CLIENTCONTEXT', [
     ora$opentelem$tracectx:
       'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n' +
       'tracestate: congo=t61rcWkgMzE\r\n',
+  },
+  {
+    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028',
   },
 ]);
 ```
@@ -229,6 +234,26 @@ Instrumentations MAY also propagate context using [V$SESSION.ACTION](https://doc
 Because `V$SESSION.ACTION` is limited to 64 bytes, variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected. Instrumentations that use this mechanism MUST update `V$SESSION.ACTION` on the same physical connection as the SQL statement.
 
 Applications may already use `ACTION` for their own session metadata, so instrumentations SHOULD prefer application context piggyback when the driver supports it.
+
+Example:
+
+Note that Oracle database drivers in different languages may have different implementation details for updating `V$SESSION.ACTION`.
+
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`:
+
+Run the following command on the same physical connection as the SQL statement:
+
+```sql
+BEGIN
+    DBMS_APPLICATION_INFO.SET_ACTION('00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01');
+END;
+```
+
+Then run the query:
+
+```sql
+SELECT * FROM songs;
+```
 
 ## Metrics
 
