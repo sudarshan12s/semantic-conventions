@@ -225,7 +225,7 @@ If supported by the driver and server-side conventions, instrumentations MAY als
 
 Instrumentations that propagate context MUST use the Oracle driver API on the same connection object that is used to execute the SQL statement. Instrumentations SHOULD use driver APIs that associate the context with the statement execution without requiring an additional database call.
 
-When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`.
+When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`. The value of `ora$opentelem$tracectx` MUST be formatted as one or more newline-delimited fields matching the format `field-name ": " field-value CRLF`. If `tracestate` is absent, its field line MUST be entirely omitted, and the string MUST consist solely of the `traceparent` line terminated by a single `CRLF`.
 
 Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs.
 
@@ -245,9 +245,17 @@ connection.appContext('CLIENTCONTEXT', [
       'tracestate: congo=t61rcWkgMzE\r\n',
   },
   {
-    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028',
+    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028\r\n',
   },
 ]);
+```
+If `tracestate` and `baggage` are absent, only the `traceparent` line is included in `ora$opentelem$tracectx`, still terminated by a trailing `\r\n`, and `ora$opentelem$baggage` is omitted:
+
+```js
+connection.appContext('CLIENTCONTEXT', {
+  ora$opentelem$tracectx:
+    'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n',
+});
 ```
 
 The driver then sends this context with the subsequent SQL statement on that connection:
