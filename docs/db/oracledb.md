@@ -225,7 +225,7 @@ If supported by the driver and server-side conventions, instrumentations MAY als
 
 Instrumentations that propagate context MUST use the Oracle driver API on the same connection object that is used to execute the SQL statement. Instrumentations SHOULD use driver APIs that associate the context with the statement execution without requiring an additional database call.
 
-When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to send the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`. The value of `ora$opentelem$tracectx` MUST be formatted as one or more newline-delimited fields matching the format `field-name ": " field-value CRLF`. If `tracestate` is absent, its field line MUST be entirely omitted, and the string MUST consist solely of the `traceparent` line terminated by a single `CRLF`.
+When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to associate the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`. The value of `ora$opentelem$tracectx` MUST be formatted as one or more newline-delimited fields matching the format `field-name ": " field-value CRLF`. If `tracestate` is absent, its field line MUST be entirely omitted, and the string MUST consist solely of the `traceparent` line terminated by a single `CRLF`.
 
 Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs.
 
@@ -235,7 +235,7 @@ Example:
 
 Note that Oracle database drivers in different languages may expose different APIs for setting application context on a connection.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection:
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection. Calling [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) does not perform a database round trip. Instead, the driver piggybacks the application context with the next SQL statement executed on that connection.
 
 ```js
 connection.appContext('CLIENTCONTEXT', [
@@ -245,7 +245,7 @@ connection.appContext('CLIENTCONTEXT', [
       'tracestate: congo=t61rcWkgMzE\r\n',
   },
   {
-    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028\r\n',
+    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028',
   },
 ]);
 ```
