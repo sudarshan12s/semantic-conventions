@@ -260,14 +260,14 @@ generate-gh-issue-templates:
 	mkdir -p $(TOOLS_DIR)/bin
 	$(DOCKER_RUN) --rm \
 	$(DOCKER_USER_IS_HOST_USER_ARG) \
-	--mount 'type=bind,source=$(PWD)/internal/tools/scripts,target=/home/weaver/templates,readonly' \
+	--mount 'type=bind,source=$(PWD)/internal/tools/scripts/registry,target=/home/weaver/templates,readonly' \
 	--mount 'type=bind,source=$(PWD)/model,target=/home/weaver/source,readonly' \
 	--mount 'type=bind,source=$(TOOLS_DIR)/bin,target=/home/weaver/target' \
 	$(WEAVER_CONTAINER) registry generate \
 		--registry=/home/weaver/source \
 		--templates=/home/weaver/templates \
-		--config=/home/weaver/templates/registry/areas-weaver.yaml \
-		. \
+		--v2 \
+		areas \
 		/home/weaver/target
 	$(TOOLS_DIR)/scripts/update-issue-template-areas.sh $(PWD)/internal/tools/bin/areas.txt
 
@@ -285,6 +285,13 @@ generate-gh-issue-templates:
 # .. which is why some additional processing is required to extract the
 # latest version number and strip off the "v" prefix.
 LATEST_RELEASED_SEMCONV_VERSION := $(shell git ls-remote --tags https://github.com/open-telemetry/semantic-conventions.git | cut -f 2 | sort --reverse | head -n 1 | tr '/' ' ' | cut -d ' ' -f 3 | $(SED) 's/v//g')
+# Most semantic-convention check policies live in the opentelemetry-weaver-packages
+# repository (see https://github.com/open-telemetry/opentelemetry-weaver-packages/tree/main/policies/check).
+# Only checks that are NOT provided upstream are kept locally under ./policies (see policies/README.md).
+#
+# TODO: pin commit or tag of opentelemetry-weaver-packages and add it to renovate
+# once weaver-packages is released.
+WEAVER_PACKAGES_REPO=https://github.com/open-telemetry/opentelemetry-weaver-packages.git
 .PHONY: check-policies
 check-policies:
 	$(DOCKER_RUN) --rm \
@@ -295,9 +302,14 @@ check-policies:
 		--mount 'type=bind,source=$(PWD)/policies,target=/home/weaver/policies,readonly' \
 		--mount 'type=bind,source=$(PWD)/model,target=/home/weaver/source,readonly' \
 		${WEAVER_CONTAINER} registry check \
+		--v2 \
 		--registry=/home/weaver/source \
 		--baseline-registry=https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v$(LATEST_RELEASED_SEMCONV_VERSION).zip[model] \
-		--policy=/home/weaver/policies
+		--policy=/home/weaver/policies \
+		--policy="$(WEAVER_PACKAGES_REPO)[policies/check/naming_conventions]" \
+		--policy="$(WEAVER_PACKAGES_REPO)[policies/check/stability]" \
+		--policy="$(WEAVER_PACKAGES_REPO)[policies/check/entity_associations]" \
+		--policy="$(WEAVER_PACKAGES_REPO)[policies/check/backwards-compatibility]"
 
 # Test rego policies
 .PHONY: test-policies
@@ -314,14 +326,13 @@ check-dead-yaml:
 	mkdir -p $(TOOLS_DIR)/bin
 	$(DOCKER_RUN) --rm \
 	$(DOCKER_USER_IS_HOST_USER_ARG) \
-	--mount 'type=bind,source=$(PWD)/internal/tools/scripts,target=/home/weaver/templates,readonly' \
+	--mount 'type=bind,source=$(PWD)/internal/tools/scripts/registry,target=/home/weaver/templates,readonly' \
 	--mount 'type=bind,source=$(PWD)/model,target=/home/weaver/source,readonly' \
 	--mount 'type=bind,source=$(TOOLS_DIR)/bin,target=/home/weaver/target' \
 	$(WEAVER_CONTAINER) registry generate \
 		--registry=/home/weaver/source \
 		--templates=/home/weaver/templates \
-		--config=/home/weaver/templates/registry/signal-groups-weaver.yaml \
-		. \
+		signal-groups \
 		/home/weaver/target
 	$(TOOLS_DIR)/scripts/find-dead-yaml.sh $(PWD)/internal/tools/bin/signal-groups.txt $(PWD)/docs
 
@@ -345,6 +356,13 @@ generate-schema-next:
 		--output /home/weaver/target
 		# --param next_version=$(NEXT_SEMCONV_VERSION)
 	$(TOOLS_DIR)/scripts/generate-schema-next.sh $(NEXT_SEMCONV_VERSION) $(LATEST_RELEASED_SEMCONV_VERSION) $(TOOLS_DIR)/bin/schema-diff.yaml
+	@tmp_file=$$(mktemp); \
+	$(SED) 's|^schema_url: https://opentelemetry.io/schemas/.*$$|schema_url: https://opentelemetry.io/schemas/$(NEXT_SEMCONV_VERSION)|' model/manifest.yaml > "$$tmp_file" && \
+	mv "$$tmp_file" model/manifest.yaml || { \
+		rm -f "$$tmp_file"; \
+		echo "Failed to update schema_url in model/manifest.yaml"; \
+		exit 1; \
+	};
 
 .PHONY: areas-table-generation
 areas-table-generation:
