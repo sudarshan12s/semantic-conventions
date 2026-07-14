@@ -227,7 +227,7 @@ Instrumentations that propagate context MUST use the Oracle driver API on the sa
 
 When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to associate the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`. The value of `ora$opentelem$tracectx` MUST be formatted as one or more newline-delimited fields matching the format `field-name ": " field-value CRLF`. If `tracestate` is absent, its field line MUST be entirely omitted, and the string MUST consist solely of the `traceparent` line terminated by a single `CRLF`.
 
-Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs.
+Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs. Furthermore, this mechanism requires support from both the database client driver and the database server version in use. To successfully capture and process these values for end-to-end tracing, the database server must also be explicitly configured to enable tracing.
 
 Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
@@ -251,7 +251,7 @@ connection.appContext('CLIENTCONTEXT', [
 ]);
 
 // 2. Execute the query. The driver automatically sends the context 
-// to the server during this database round trip.
+//    to the server during this database round trip.
 await connection.execute('SELECT * FROM songs');
 ```
 If `tracestate` and `baggage` are absent, only the `traceparent` line is included in `ora$opentelem$tracectx`, still terminated by a trailing `\r\n`, and `ora$opentelem$baggage` is omitted:
@@ -264,7 +264,7 @@ connection.appContext('CLIENTCONTEXT', {
 });
 
 // 2. Execute the query. The driver automatically sends the context 
-// to the server during this database round trip.
+//    to the server during this database round trip.
 await connection.execute('SELECT * FROM songs');
 ```
 
