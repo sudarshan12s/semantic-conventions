@@ -231,7 +231,7 @@ Example payload with both fields present (note the trailing \r\n on each line):
 
 ```text
 traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n
-tracestate: congo=t61rcWkgMzE\r\n
+tracestate: congo=t61rcWkgMzE
 ```
 Example payload when tracestate is absent:
 
