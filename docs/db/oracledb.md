@@ -235,10 +235,13 @@ Example:
 
 Note that Oracle database drivers in different languages may expose different APIs for setting application context on a connection.
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection. Calling [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) does not perform a database round trip. Instead, the driver piggybacks the application context with the next SQL statement executed on that connection.
+For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection. Calling [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) or `databaseOpenTelemetryTracing` does not perform a database round trip. Instead, the driver piggybacks the application context with the next SQL statement executed on that connection.
 
 ```js
-// 1. Set the application context values on the connection object
+// 1. Enable tracing on server for this connection
+connection.databaseOpenTelemetryTracing(true);
+
+// 2. Set the application context values on the connection object
 connection.appContext('CLIENTCONTEXT', [
   {
     ora$opentelem$tracectx:
@@ -250,20 +253,23 @@ connection.appContext('CLIENTCONTEXT', [
   },
 ]);
 
-// 2. Execute the query. The driver automatically sends the context 
+// 3. Execute the query. The driver automatically sends the context 
 //    to the server during this database round trip.
 await connection.execute('SELECT * FROM songs');
 ```
 If `tracestate` and `baggage` are absent, only the `traceparent` line is included in `ora$opentelem$tracectx`, still terminated by a trailing `\r\n`, and `ora$opentelem$baggage` is omitted:
 
 ```js
-// 1. Set the application context values on the connection object
+// 1. Enable tracing on server for this connection
+connection.databaseOpenTelemetryTracing(true);
+
+// 2. Set the application context values on the connection object
 connection.appContext('CLIENTCONTEXT', {
   ora$opentelem$tracectx:
     'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n',
 });
 
-// 2. Execute the query. The driver automatically sends the context 
+// 3. Execute the query. The driver automatically sends the context 
 //    to the server during this database round trip.
 await connection.execute('SELECT * FROM songs');
 ```
