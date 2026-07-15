@@ -264,10 +264,12 @@ If `tracestate` and `baggage` are absent, only the `traceparent` line is include
 connection.databaseOpenTelemetryTracing(true);
 
 // 2. Set the application context values on the connection object
-connection.appContext('CLIENTCONTEXT', {
+connection.appContext('CLIENTCONTEXT', [
+  {
   ora$opentelem$tracectx:
     'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n',
-});
+  }
+]);
 
 // 3. Execute the query. The driver automatically sends the context 
 //    to the server during this database round trip.
