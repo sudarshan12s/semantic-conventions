@@ -227,59 +227,67 @@ Instrumentations that propagate context MUST use the Oracle driver API on the sa
 
 When the Oracle driver exposes an application context API, instrumentations SHOULD use that API to associate the trace context in the `CLIENTCONTEXT` namespace using the key `ora$opentelem$tracectx`. When supported, instrumentations MAY use the same API to send baggage in the same namespace using a separate key such as `ora$opentelem$baggage`. The value of `ora$opentelem$tracectx` MUST be formatted as one or more newline-delimited fields matching the format `field-name ": " field-value CRLF`. If `tracestate` is absent, its field line MUST be entirely omitted, and the string MUST consist solely of the `traceparent` line terminated by a single `CRLF`.
 
+Example payload with both fields present (note the trailing \r\n on each line):
+
+```text
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n
+tracestate: congo=t61rcWkgMzE\r\n
+```
+Example payload when tracestate is absent:
+
+```text
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n
+```
+
 Although application context piggyback is not constrained by the 64 byte limit of `V$SESSION.ACTION`, it can still be subject to application context size limits. Oracle application context values are limited to 4000 bytes, and drivers such as `node-oracledb` may enforce the same limit in their APIs. Furthermore, this mechanism requires support from both the database client driver and the database server version in use. To successfully capture and process these values for end-to-end tracing, the database server must also be explicitly configured to enable tracing.
 
 Compared with `V$SESSION.ACTION`, application context piggyback avoids overloading a field that applications may already use and is not constrained by the 64 byte limit of `ACTION`.
 
 Example:
 
-Note that Oracle database drivers in different languages may expose different APIs for setting application context on a connection.
+Note that Oracle database drivers in different languages expose different APIs for enabling application context propagation. In .NET, using the `Oracle.ManagedDataAccess.Core` driver, the instrumentation hooks into the built-in provider source, and users enable server-side propagation via the `DatabaseOpenTelemetryTracing` property on the connection:
 
-For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`, `tracestate` is `congo=t61rcWkgMzE`, and baggage is `userId=42,serverNode=DF%2028`, the `node-oracledb` [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) API can be used to set application context on the connection. Calling [`connection.appContext()`](https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#setting-application-contexts-on-a-connection-object) or `databaseOpenTelemetryTracing` does not perform a database round trip. Instead, the driver piggybacks the application context with the next SQL statement executed on that connection.
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Oracle.ManagedDataAccess.Client;
 
-```js
-// 1. Enable tracing on server for this connection
-connection.databaseOpenTelemetryTracing(true);
+// 1. Setup the OpenTelemetry Tracer Provider targeting the Oracle driver source
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddSource("Oracle.ManagedDataAccess.Core")
+    .SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService("OrderProcessingService", serviceVersion: "1.0.0"))
+    .AddOtlpExporter()
+    .Build();
 
-// 2. Set the application context values on the connection object
-connection.appContext('CLIENTCONTEXT', [
-  {
-    ora$opentelem$tracectx:
-      'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n' +
-      'tracestate: congo=t61rcWkgMzE\r\n',
-  },
-  {
-    ora$opentelem$baggage: 'userId=42,serverNode=DF%2028',
-  },
-]);
+string connectString = <your_connection_string>;
 
-// 3. Execute the query. The driver automatically sends the context 
-//    to the server during this database round trip.
-await connection.execute('SELECT * FROM songs');
-```
-If `tracestate` and `baggage` are absent, only the `traceparent` line is included in `ora$opentelem$tracectx`, still terminated by a trailing `\r\n`, and `ora$opentelem$baggage` is omitted:
+using (OracleConnection connection = new OracleConnection(connectString))
+{
+    using (OracleCommand command = connection.CreateCommand())
+    {
+        connection.Open();
 
-```js
-// 1. Enable tracing on server for this connection
-connection.databaseOpenTelemetryTracing(true);
+        // 2. Opt-in to client context piggybacking. 
+        // The driver automatically serializes the active W3C trace context 
+        // into CLIENTCONTEXT (ora$opentelem$tracectx) during subsequent executions.
+        connection.DatabaseOpenTelemetryTracing = true; 
 
-// 2. Set the application context values on the connection object
-connection.appContext('CLIENTCONTEXT', [
-  {
-  ora$opentelem$tracectx:
-    'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n',
-  }
-]);
+        // 3. Execute queries. Trace context piggybacks silently on these roundtrips.
+        command.CommandText = "INSERT INTO MYTABLE VALUES ('val1', 100)";
+        command.ExecuteNonQuery();
 
-// 3. Execute the query. The driver automatically sends the context 
-//    to the server during this database round trip.
-await connection.execute('SELECT * FROM songs');
-```
+        command.CommandText = "SELECT COL2 FROM MYTABLE WHERE COL2 = 100";
+        using (OracleDataReader reader = command.ExecuteReader())
+        {
+            // Consume the results
+        }
 
-The driver then sends this context with the subsequent SQL statement on that connection:
-
-```sql
-SELECT * FROM songs;
+        connection.Close();
+    }
+}
 ```
 
 ### V$SESSION.ACTION
