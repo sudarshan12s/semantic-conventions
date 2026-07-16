@@ -295,15 +295,17 @@ using (OracleConnection connection = new OracleConnection(connectString))
 
 ### V$SESSION.ACTION
 
-Instrumentations MAY also propagate context using [V$SESSION.ACTION](https://docs.oracle.com/en/database/oracle/oracle-database/23/refrn/V-SESSION.html) by injecting a fixed-length value before executing a query. For example, when using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected.
+Instrumentations MAY propagate context with a fixed-length, 64 byte value using [V$SESSION.ACTION](https://docs.oracle.com/en/database/oracle/oracle-database/23/refrn/V-SESSION.html) by injecting part of span context (trace-id, span-id, trace-flags, protocol version) before executing a query. For example, when using W3C Trace Context, only a string representation of [`traceparent`](https://www.w3.org/TR/trace-context/#traceparent-header) SHOULD be injected. Context injection SHOULD NOT be enabled by default, but instrumentation MAY allow users to opt into it.
 
-Because `V$SESSION.ACTION` is limited to 64 bytes, variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected. Instrumentations that use this mechanism MUST update `V$SESSION.ACTION` on the same physical connection as the SQL statement.
+Variable context parts (`tracestate`, `baggage`) SHOULD NOT be injected since `V$SESSION.ACTION` value length is limited to 64 bytes.
+
+Instrumentations that propagate context MUST update `V$SESSION.ACTION` on the same physical connection as the SQL statement.
 
 Applications may already use `ACTION` for their own session metadata, so instrumentations SHOULD prefer application context piggyback when the driver supports it.
 
 Example:
 
-Note that Oracle database drivers in different languages may have different implementation details for updating `V$SESSION.ACTION`.
+Note that Oracle database drivers in different languages may have different implementation to update `V$SESSION.ACTION`.
 
 For a query `SELECT * FROM songs` where `traceparent` is `00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01`:
 
